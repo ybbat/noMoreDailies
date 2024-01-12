@@ -1,0 +1,1 @@
+Quick simple [REPENTAGON](https://repentogon.com/index.html) mod that adds some new triggers to unlock Cracked Crown, Broken Modem, and Determination without the daily runs requirement.

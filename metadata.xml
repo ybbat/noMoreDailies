@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+    <name>No More Dailies</name>
+    <directory>nomoredailies</directory>
+    <id>3137881544</id>
+    <description>REQUIRES REPENTAGON
+
+Adds new triggers for the achievements usually requiring daily runs.
+
+Cracked Crown requires a regular 5 win streak.
+Broken Modem requires 7 total victories.
+Dedication requires 31 total runs.
+
+The items can still be unlocked via regular means.</description>
+    <version>1.1</version>
+    <visibility>Public</visibility>
+    <tag id="Lua"/>
+    <tag id="Tweaks"/>
+</metadata>
