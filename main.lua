@@ -43,6 +43,7 @@ nmd.persistentData = {
     -- Other persistent data
     random_streak = 0,
     random_runs = 0,
+    random_wins = 0,
     cur_random = false,
 }
 
@@ -327,9 +328,9 @@ nmd:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, nmd.gameStart)
 function nmd:gameEnd(IsGameOver)
     print(nmd.persistentData.cur_random)
     if nmd.persistentData.cur_random then
-        print("was random")
         nmd.persistentData.random_runs = nmd.persistentData.random_runs + 1
         if not IsGameOver then
+            nmd.persistentData.random_wins = nmd.persistentData.random_wins + 1
             nmd.persistentData.random_streak = nmd.persistentData.random_streak + 1
         else
             nmd.persistentData.random_streak = 0
@@ -358,17 +359,27 @@ function nmd:checkDailies(gd)
 end
 
 function nmd:crownCheck(gd)
-    return gd:GetEventCounter(EventCounter.STREAK_COUNTER) >= nmd.persistentData.cracked_crown
+    if nmd.persistentData.cracked_flag == "Regular streak" then
+        return gd:GetEventCounter(EventCounter.STREAK_COUNTER) >= nmd.persistentData.cracked_crown_reg
+    elseif nmd.persistentData.cracked_flag == "Random streak" then
+        return nmd.persistentData.random_streak >= nmd.persistentData.cracked_crown_random
+    end
 end
 
 function nmd:modemCheck(gd)
-    return gd:GetEventCounter(EventCounter.MOM_KILLS) >= nmd.persistentData.broken_modem_reg
+    if nmd.persistentData.modem_flag == "Regular victories" then
+        return gd:GetEventCounter(EventCounter.MOM_KILLS) >= nmd.persistentData.broken_modem_reg
+    elseif nmd.persistentData.modem_flag == "Random victories" then
+        return nmd.persistentData.random_runs >= nmd.persistentData.broken_modem_random
+    end
 end
 
 function nmd:dedicationCheck(gd)
     if nmd.persistentData.dedication_flag == "# runs" then
         return (gd:GetEventCounter(EventCounter.MOM_KILLS) + gd:GetEventCounter(EventCounter.DEATHS)) >=
             nmd.persistentData.dedication_runs
+    elseif nmd.persistentData.dedication_flag == "# random runs" then
+        return nmd.persistentData.random_runs >= nmd.persistentData.dedication_runs_rand
     elseif nmd.persistentData.dedication_flag == "# achievements" then
         local count = 0
         for i = 1, 637 do
