@@ -48,6 +48,7 @@ function nmd:modConfigMenuInit(_)
             end,
             Minimum = 1,
             Maximum = 100,
+            Default = 5,
         }
     )
     ModConfigMenu.AddSetting(
@@ -67,6 +68,7 @@ function nmd:modConfigMenuInit(_)
             end,
             Minimum = 1,
             Maximum = 100,
+            Default = 7,
         }
     )
 
@@ -93,6 +95,11 @@ function nmd:modConfigMenuInit(_)
             end,
             Minimum = 1,
             Maximum = #nmd.dedication_flags,
+            Default = "# runs",
+            Info = {
+                "# runs will unlock dedication after N runs (victory or loss)",
+                "# achievements will unlock dedication after N achievements are unlocked"
+            }
         }
     )
 
@@ -115,6 +122,7 @@ function nmd:modConfigMenuInit(_)
                 end,
                 Minimum = 1,
                 Maximum = 100,
+                Default = 31,
             }
         )
     elseif nmd.persistentData.dedication_flag == "# achievements" then
@@ -136,6 +144,7 @@ function nmd:modConfigMenuInit(_)
                 end,
                 Minimum = 1,
                 Maximum = 637,
+                Default = 200,
             }
         )
     end
