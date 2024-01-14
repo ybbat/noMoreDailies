@@ -21,3 +21,42 @@ function nmd:checkDailies(IsGameOver)
 end
 
 nmd:AddCallback(ModCallbacks.MC_POST_GAME_END, nmd.checkDailies)
+
+local last = nil
+local init = os.clock()
+local randoming = false
+
+local last_streak = nil
+
+function nmd:randomDetectorInMenu()
+    if MenuManager.GetActiveMenu() == MainMenuType.CHARACTER then
+        local id = CharacterMenu:GetSelectedCharacterID()
+        if id ~= last then
+            local now = os.clock()
+            local diff = now - init
+
+            -- first time diff when randoming is always approx 0.05, cannot be easily replicated manually
+            if randoming == false and diff <= 0.06 then
+                randoming = true
+            end
+
+            -- random always ends at somewhere in range [0.5, 0.58]
+            if diff > 0.6 then
+                randoming = false
+            end
+
+            init = now
+            last = id
+        end
+    end
+end
+
+function nmd:saveLastStreak()
+    if last_streak == nil then
+        local gd = Isaac:GetPersistentGameData()
+        last_streak = gd:GetEventCounter(EventCounter.STREAK_COUNTER)
+    end
+end
+
+nmd:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, nmd.randomDetectorInMenu)
+nmd:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, nmd.saveLastStreak)
