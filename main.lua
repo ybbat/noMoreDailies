@@ -4,7 +4,18 @@ local json = require("json")
 
 nmd.dedication_flags = {
     "# runs",
+    "# random runs",
     "# achievements"
+}
+
+nmd.cracked_flags = {
+    "Regular streak",
+    "Random streak"
+}
+
+nmd.modem_flags = {
+    "Regular victories",
+    "Random victories"
 }
 
 local function getTableIndex(tbl, val)
@@ -19,10 +30,15 @@ end
 
 nmd.persistentData = {
     -- Configuration options
-    cracked_crown = 5,
-    broken_modem = 7,
+    cracked_flag = nmd.cracked_flags[1],
+    cracked_crown_reg = 5,
+    cracked_crown_random = 5,
+    modem_flag = nmd.modem_flags[1],
+    broken_modem_reg = 7,
+    broken_modem_random = 7,
     dedication_flag = nmd.dedication_flags[1],
-    dedication_victories = 31,
+    dedication_runs = 31,
+    dedication_runs_rand = 31,
     dedication_achievements = 200,
     -- Other persistent data
     random_streak = 0,
@@ -36,46 +52,149 @@ function nmd:modConfigMenuInit(_)
         return
     end
 
+    -- Cracked crown flag selection
     ModConfigMenu.AddSetting(
         "No More Dailies",
         "Config",
         {
             Type = ModConfigMenu.OptionType.NUMBER,
             CurrentSetting = function()
-                return nmd.persistentData.cracked_crown
+                return getTableIndex(nmd.cracked_flags, nmd.persistentData.cracked_flag)
             end,
             OnChange = function(n)
-                nmd.persistentData.cracked_crown = n
+                nmd.persistentData.cracked_flag = nmd.cracked_flags[n]
                 nmd:saveData()
+                ModConfigMenu.RemoveSubcategory("No More Dailies", "Config")
+                nmd:modConfigMenuInit()
             end,
             Display = function()
-                return "Win streak to unlock cracked crown " .. (nmd.persistentData.cracked_crown)
+                return "Cracked crown unlock method: " .. (nmd.persistentData.cracked_flag)
             end,
             Minimum = 1,
-            Maximum = 100,
-            Default = 5,
+            Maximum = #nmd.cracked_flags,
+            Default = "Regular streak",
+            Info = {
+                "For random streaks you must click the random button on character select",
+                "You do not have to do them consequtively, as long as 5 randoms in a row at any time are wins"
+            }
         }
     )
+
+    if nmd.persistentData.cracked_flag == "Regular streak" then
+        ModConfigMenu.AddSetting(
+            "No More Dailies",
+            "Config",
+            {
+                Type = ModConfigMenu.OptionType.NUMBER,
+                CurrentSetting = function()
+                    return nmd.persistentData.cracked_crown_reg
+                end,
+                OnChange = function(n)
+                    nmd.persistentData.cracked_crown_reg = n
+                    nmd:saveData()
+                end,
+                Display = function()
+                    return "Streak to unlock cc: " .. (nmd.persistentData.cracked_crown_reg)
+                end,
+                Minimum = 1,
+                Maximum = 100,
+                Default = 5,
+            }
+        )
+    elseif nmd.persistentData.cracked_flag == "Random streak" then
+        ModConfigMenu.AddSetting(
+            "No More Dailies",
+            "Config",
+            {
+                Type = ModConfigMenu.OptionType.NUMBER,
+                CurrentSetting = function()
+                    return nmd.persistentData.cracked_crown_random
+                end,
+                OnChange = function(n)
+                    nmd.persistentData.cracked_crown_random = n
+                    nmd:saveData()
+                end,
+                Display = function()
+                    return "Random streak to unlock cc: " ..
+                        (nmd.persistentData.cracked_crown_random)
+                end,
+                Minimum = 1,
+                Maximum = 100,
+                Default = 5,
+            }
+        )
+    end
+
+    -- broken modem flag selection
     ModConfigMenu.AddSetting(
         "No More Dailies",
         "Config",
         {
             Type = ModConfigMenu.OptionType.NUMBER,
             CurrentSetting = function()
-                return nmd.persistentData.broken_modem
+                return getTableIndex(nmd.modem_flags, nmd.persistentData.modem_flag)
             end,
             OnChange = function(n)
-                nmd.persistentData.broken_modem = n
+                nmd.persistentData.modem_flag = nmd.modem_flags[n]
                 nmd:saveData()
+                ModConfigMenu.RemoveSubcategory("No More Dailies", "Config")
+                nmd:modConfigMenuInit()
             end,
             Display = function()
-                return "Victories to unlock broken modem " .. (nmd.persistentData.broken_modem)
+                return "Modem unlock method: " .. (nmd.persistentData.modem_flag)
             end,
             Minimum = 1,
-            Maximum = 100,
-            Default = 7,
+            Maximum = #nmd.modem_flags,
+            Default = "Regular victories",
+            Info = {
+                "For random runs you must click the random button on character select"
+            }
         }
     )
+    if nmd.persistentData.modem_flag == "Regular victories" then
+        ModConfigMenu.AddSetting(
+            "No More Dailies",
+            "Config",
+            {
+                Type = ModConfigMenu.OptionType.NUMBER,
+                CurrentSetting = function()
+                    return nmd.persistentData.broken_modem_reg
+                end,
+                OnChange = function(n)
+                    nmd.persistentData.broken_modem_reg = n
+                    nmd:saveData()
+                end,
+                Display = function()
+                    return "Wins to unlock modem: " .. (nmd.persistentData.broken_modem_reg)
+                end,
+                Minimum = 1,
+                Maximum = 100,
+                Default = 7,
+            }
+        )
+    elseif nmd.persistentData.modem_flag == "Random victories" then
+        ModConfigMenu.AddSetting(
+            "No More Dailies",
+            "Config",
+            {
+                Type = ModConfigMenu.OptionType.NUMBER,
+                CurrentSetting = function()
+                    return nmd.persistentData.broken_modem_random
+                end,
+                OnChange = function(n)
+                    nmd.persistentData.broken_modem_random = n
+                    nmd:saveData()
+                end,
+                Display = function()
+                    return "Random wins to unlock modem: " ..
+                        (nmd.persistentData.broken_modem_random)
+                end,
+                Minimum = 1,
+                Maximum = 100,
+                Default = 7,
+            }
+        )
+    end
 
     -- Dedication flag selection
     ModConfigMenu.AddSetting(
@@ -87,9 +206,6 @@ function nmd:modConfigMenuInit(_)
                 return getTableIndex(nmd.dedication_flags, nmd.persistentData.dedication_flag)
             end,
             OnChange = function(n)
-                print(n)
-                print(nmd.dedication_flags)
-                print(nmd.dedication_flags[n])
                 nmd.persistentData.dedication_flag = nmd.dedication_flags[n]
                 nmd:saveData()
                 ModConfigMenu.RemoveSubcategory("No More Dailies", "Config")
@@ -101,10 +217,6 @@ function nmd:modConfigMenuInit(_)
             Minimum = 1,
             Maximum = #nmd.dedication_flags,
             Default = "# runs",
-            Info = {
-                "# runs will unlock dedication after N runs (victory or loss)",
-                "# achievements will unlock dedication after N achievements are unlocked"
-            }
         }
     )
 
@@ -116,14 +228,36 @@ function nmd:modConfigMenuInit(_)
                 Attribute = "dedication",
                 Type = ModConfigMenu.OptionType.NUMBER,
                 CurrentSetting = function()
-                    return nmd.persistentData.dedication_victories
+                    return nmd.persistentData.dedication_runs
                 end,
                 OnChange = function(n)
-                    nmd.persistentData.dedication_victories = n
+                    nmd.persistentData.dedication_runs = n
                     nmd:saveData()
                 end,
                 Display = function()
-                    return "Runs to unlock dedication " .. (nmd.persistentData.dedication_victories)
+                    return "Runs to unlock dedication: " .. (nmd.persistentData.dedication_runs)
+                end,
+                Minimum = 1,
+                Maximum = 100,
+                Default = 31,
+            }
+        )
+    elseif nmd.persistentData.dedication_flag == "# random runs" then
+        ModConfigMenu.AddSetting(
+            "No More Dailies",
+            "Config",
+            {
+                Attribute = "dedication",
+                Type = ModConfigMenu.OptionType.NUMBER,
+                CurrentSetting = function()
+                    return nmd.persistentData.dedication_runs_rand
+                end,
+                OnChange = function(n)
+                    nmd.persistentData.dedication_runs_rand = n
+                    nmd:saveData()
+                end,
+                Display = function()
+                    return "Random runs to unlock dedication: " .. (nmd.persistentData.dedication_runs_rand)
                 end,
                 Minimum = 1,
                 Maximum = 100,
@@ -145,7 +279,7 @@ function nmd:modConfigMenuInit(_)
                     nmd:saveData()
                 end,
                 Display = function()
-                    return "Achievements to unlock dedication " .. (nmd.persistentData.dedication_achievements)
+                    return "Achievements to unlock dedication: " .. (nmd.persistentData.dedication_achievements)
                 end,
                 Minimum = 1,
                 Maximum = 637,
@@ -166,7 +300,6 @@ nmd:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, nmd.saveData)
 
 function nmd:gameStart(isContinued)
     nmd:loadData(isContinued)
-    print(nmd.persistentData.cur_random)
 end
 
 function nmd:loadData(isContinued)
@@ -175,7 +308,10 @@ function nmd:loadData(isContinued)
     end
 
     local jsonString = nmd:LoadData()
-    nmd.persistentData = json.decode(jsonString)
+    local savedData = json.decode(jsonString)
+    for k, v in pairs(savedData) do
+        nmd.persistentData[k] = v
+    end
 
     if isContinued then -- If continued, then saved value is correct
     else                -- If new run, then the new value is correct
@@ -226,13 +362,13 @@ function nmd:crownCheck(gd)
 end
 
 function nmd:modemCheck(gd)
-    return gd:GetEventCounter(EventCounter.MOM_KILLS) >= nmd.persistentData.broken_modem
+    return gd:GetEventCounter(EventCounter.MOM_KILLS) >= nmd.persistentData.broken_modem_reg
 end
 
 function nmd:dedicationCheck(gd)
     if nmd.persistentData.dedication_flag == "# runs" then
         return (gd:GetEventCounter(EventCounter.MOM_KILLS) + gd:GetEventCounter(EventCounter.DEATHS)) >=
-            nmd.persistentData.dedication_victories
+            nmd.persistentData.dedication_runs
     elseif nmd.persistentData.dedication_flag == "# achievements" then
         local count = 0
         for i = 1, 637 do
