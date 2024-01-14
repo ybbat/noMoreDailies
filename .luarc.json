@@ -237,6 +237,7 @@
         "Vector",
         "WispSubType",
         "XMLData",
-        "XMLNode"
+        "XMLNode",
+        "ModConfigMenu"
     ]
 }
