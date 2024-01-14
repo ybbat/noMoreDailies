@@ -18,11 +18,16 @@ local function getTableIndex(tbl, val)
 end
 
 nmd.persistentData = {
+    -- Configuration options
     cracked_crown = 5,
     broken_modem = 7,
     dedication_flag = nmd.dedication_flags[1],
     dedication_victories = 31,
-    dedication_achievements = 200
+    dedication_achievements = 200,
+    -- Other persistent data
+    random_streak = 0,
+    random_runs = 0,
+    cur_random = false,
 }
 
 
@@ -159,22 +164,50 @@ end
 
 nmd:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, nmd.saveData)
 
-function nmd:loadData(_)
+function nmd:gameStart(isContinued)
+    nmd:loadData(isContinued)
+    print(nmd.persistentData.cur_random)
+end
+
+function nmd:loadData(isContinued)
     if not nmd:HasData() then
         return
     end
 
     local jsonString = nmd:LoadData()
     nmd.persistentData = json.decode(jsonString)
+
+    if isContinued then -- If continued, then saved value is correct
+    else                -- If new run, then the new value is correct
+        nmd.persistentData.cur_random = nmd.randomed
+    end
+    -- print(nmd.persistentData.cur_random)
     ModConfigMenu.RemoveSubcategory("No More Dailies", "Config")
     nmd:modConfigMenuInit()
 end
 
-nmd:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, nmd.loadData)
+nmd:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, nmd.gameStart)
 
-function nmd:checkDailies(_)
+function nmd:gameEnd(IsGameOver)
+    print(nmd.persistentData.cur_random)
+    if nmd.persistentData.cur_random then
+        print("was random")
+        nmd.persistentData.random_runs = nmd.persistentData.random_runs + 1
+        if not IsGameOver then
+            nmd.persistentData.random_streak = nmd.persistentData.random_streak + 1
+        else
+            nmd.persistentData.random_streak = 0
+        end
+    end
+    print(nmd.persistentData.random_runs)
+    print(nmd.persistentData.random_streak)
+
     local gd = Isaac:GetPersistentGameData()
+    nmd:checkDailies(gd)
+    nmd.randomed = false
+end
 
+function nmd:checkDailies(gd)
     if not gd:Unlocked(Achievement.CRACKED_CROWN) and nmd:crownCheck(gd) then
         gd:TryUnlock(Achievement.CRACKED_CROWN)
     end
@@ -211,43 +244,36 @@ function nmd:dedicationCheck(gd)
     end
 end
 
-nmd:AddCallback(ModCallbacks.MC_POST_GAME_END, nmd.checkDailies)
+nmd:AddCallback(ModCallbacks.MC_POST_GAME_END, nmd.gameEnd)
 
-local last = nil
-local init = os.clock()
-local randoming = false
-
-local last_streak = nil
+nmd.last = false
+nmd.init = os.clock()
+nmd.randomed = false
 
 function nmd:randomDetectorInMenu()
     if MenuManager.GetActiveMenu() == MainMenuType.CHARACTER then
         local id = CharacterMenu:GetSelectedCharacterID()
-        if id ~= last then
-            local now = os.clock()
-            local diff = now - init
+        local now = os.clock()
+        local diff = now - nmd.init
+        nmd.init = now
 
+        -- random always ends at somewhere in range [0.5, 0.58]
+        if diff > 0.6 then
+            nmd.randomed = false
+        end
+
+        if id ~= nmd.last then
             -- first time diff when randoming is always approx 0.05, cannot be easily replicated manually
-            if randoming == false and diff <= 0.06 then
-                randoming = true
+            if nmd.randomed == false and diff <= 0.06 then
+                nmd.randomed = true
             end
 
-            -- random always ends at somewhere in range [0.5, 0.58]
-            if diff > 0.6 then
-                randoming = false
-            end
-
-            init = now
-            last = id
+            nmd.last = id
         end
     end
 end
 
-function nmd:saveLastStreak()
-    if last_streak == nil then
-        local gd = Isaac:GetPersistentGameData()
-        last_streak = gd:GetEventCounter(EventCounter.STREAK_COUNTER)
-    end
-end
-
 nmd:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, nmd.randomDetectorInMenu)
-nmd:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, nmd.saveLastStreak)
+
+
+Console.RegisterMacro("win", { "stage 8", "debug 10", "giveitem k5" })
