@@ -53,6 +53,8 @@ function nmd:modConfigMenuInit(_)
         return
     end
 
+    ModConfigMenu.RemoveSubcategory("No More Dailies", "Config")
+
     -- Cracked crown option selection
     ModConfigMenu.AddSetting(
         "No More Dailies",
@@ -319,7 +321,7 @@ function nmd:loadData(isContinued)
         nmd.persistentData.cur_random = nmd.randomed
     end
     -- print(nmd.persistentData.cur_random)
-    ModConfigMenu.RemoveSubcategory("No More Dailies", "Config")
+
     nmd:modConfigMenuInit()
 end
 
