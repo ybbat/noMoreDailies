@@ -2,7 +2,7 @@
     "$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
     "runtime.version": "Lua 5.3",
     "workspace.library": [
-        "c:\\Users\\cameron\\.vscode\\extensions\\syntaxsculptor.isaac-lua-api-vscode-repentogon-1.5.5\\out\\emmylua"
+        "c:\\Users\\cameron\\.vscode\\extensions\\syntaxsculptor.isaac-lua-api-vscode-repentogon-1.5.6\\out\\emmylua"
     ],
     "diagnostics.globals": [
         "Achievement",

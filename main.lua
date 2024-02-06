@@ -40,6 +40,7 @@ nmd.persistentData = {
     dedication_runs = 31,
     dedication_runs_rand = 31,
     dedication_achievements = 200,
+    debug = false,
     -- Other persistent data
     random_streak = 0,
     random_runs = 0,
@@ -47,6 +48,13 @@ nmd.persistentData = {
     cur_random = false,
 }
 
+function nmd:showdebug()
+    Isaac.RenderText("Is run randomed?: " .. tostring(nmd.persistentData.cur_random), 55, 45, 1, 1, 1, 1)
+end
+
+if nmd.persistentData.debug then
+    nmd:AddCallback(ModCallbacks.MC_POST_RENDER, nmd.showdebug)
+end
 
 function nmd:modConfigMenuInit(_)
     if ModConfigMenu == nil then
@@ -290,6 +298,34 @@ function nmd:modConfigMenuInit(_)
             }
         )
     end
+
+    -- Debug option
+    ModConfigMenu.AddSetting(
+        "No More Dailies",
+        "Config",
+        {
+            Type = ModConfigMenu.OptionType.BOOLEAN,
+            CurrentSetting = function()
+                return nmd.persistentData.debug
+            end,
+            OnChange = function(b)
+                nmd.persistentData.debug = b
+                nmd:saveData()
+                if b then
+                    nmd:AddCallback(ModCallbacks.MC_POST_RENDER, nmd.showdebug)
+                else
+                    nmd:RemoveCallback(ModCallbacks.MC_POST_RENDER, nmd.showdebug)
+                end
+            end,
+            Display = function()
+                return "Debug mode: " .. (nmd.persistentData.debug and "on" or "off")
+            end,
+            Info = {
+                "Displays some random-related info",
+                "on char select and in game"
+            }
+        }
+    )
 end
 
 nmd:modConfigMenuInit()
@@ -302,6 +338,9 @@ end
 nmd:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, nmd.saveData)
 
 function nmd:gameStart(isContinued)
+    if Isaac:GetChallenge() ~= 0 then
+        nmd.persistentData.cur_random = false
+    end
     nmd:loadData(isContinued)
 end
 
@@ -320,7 +359,6 @@ function nmd:loadData(isContinued)
     else                -- If new run, then the new value is correct
         nmd.persistentData.cur_random = nmd.randomed
     end
-    -- print(nmd.persistentData.cur_random)
 
     nmd:modConfigMenuInit()
 end
@@ -328,7 +366,6 @@ end
 nmd:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, nmd.gameStart)
 
 function nmd:gameEnd(IsGameOver)
-    print(nmd.persistentData.cur_random)
     if nmd.persistentData.cur_random then
         nmd.persistentData.random_runs = nmd.persistentData.random_runs + 1
         if not IsGameOver then
@@ -338,8 +375,6 @@ function nmd:gameEnd(IsGameOver)
             nmd.persistentData.random_streak = 0
         end
     end
-    print(nmd.persistentData.random_runs)
-    print(nmd.persistentData.random_streak)
 
     local gd = Isaac:GetPersistentGameData()
     nmd:checkDailies(gd)
@@ -395,34 +430,72 @@ end
 
 nmd:AddCallback(ModCallbacks.MC_POST_GAME_END, nmd.gameEnd)
 
-nmd.last = false
+nmd.last = 0
 nmd.init = os.clock()
 nmd.randomed = false
+nmd.diffonchange = 0.00
+nmd.lastn = { 0, 0, 0, 0, 0 }
+
+function nmd:checkLastN(lastn)
+    for i = 2, #lastn do
+        if lastn[i] ~= 0 and lastn[i] <= lastn[i - 1] then
+            return false
+        end
+    end
+    return true
+end
 
 function nmd:randomDetectorInMenu()
     if MenuManager.GetActiveMenu() == MainMenuType.CHARACTER then
         local id = CharacterMenu:GetSelectedCharacterID()
         local now = os.clock()
         local diff = now - nmd.init
-        nmd.init = now
 
-        -- random always ends at somewhere in range [0.5, 0.58]
-        if diff > 0.6 then
+        -- Debug display
+        if nmd.persistentData.debug then
+            Isaac.RenderText("Randomed: " .. tostring(nmd.randomed), 1, 0, 1, 1, 1, 1)
+            Isaac.RenderText("Diff: " .. tostring(diff), 1, 15, 1, 1, 1, 1)
+            Isaac.RenderText("Selected ID: " .. tostring(id), 1, 30, 1, 1, 1, 1)
+            Isaac.RenderText("Last ID: " .. tostring(nmd.last), 1, 45, 1, 1, 1, 1)
+            Isaac.RenderText("Last 5: " .. "[" .. table.concat(nmd.lastn, ", ") .. "]", 1, 60, 1, 1, 1, 1)
+            Isaac.RenderText("Diff on change: " .. tostring(nmd.diffonchange), 1, 75, 1, 1, 1, 1)
+        end
+
+        -- If hovering on selection for more than 2 seconds we definitely aren't randoming
+        if diff > 2 then
             nmd.randomed = false
         end
 
         if id ~= nmd.last then
+            table.remove(nmd.lastn, 1)
+            table.insert(nmd.lastn, 5, id)
+            local increasing = nmd:checkLastN(nmd.lastn)
+
+            nmd.diffonchange = diff
             -- first time diff when randoming is always approx 0.05, cannot be easily replicated manually
             if nmd.randomed == false and diff <= 0.06 then
                 nmd.randomed = true
             end
 
+            if id < nmd.last and id ~= 0 then
+                nmd.randomed = false
+            end
+
+            -- random always ends at somewhere in range [0.5, 0.58]
+            if diff > 0.6 then
+                nmd.randomed = false
+            end
+
+            if not increasing then
+                nmd.randomed = false
+            end
+
             nmd.last = id
+            nmd.init = now
         end
     end
 end
 
 nmd:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, nmd.randomDetectorInMenu)
-
 
 Console.RegisterMacro("win", { "stage 8", "debug 10", "giveitem k5" })
