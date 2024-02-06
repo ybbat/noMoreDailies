@@ -3,7 +3,7 @@
     <name>No More Dailies</name>
     <directory>nomoredailies</directory>
     <id>3137881544</id>
-    <description>REQUIRES REPENTAGON
+    <description>REQUIRES REPENTOGON
 
 Adds new triggers for the achievements usually requiring daily runs.
 
@@ -11,8 +11,14 @@ Cracked Crown requires a regular 5 win streak.
 Broken Modem requires 7 total victories.
 Dedication requires 31 total runs.
 
-The items can still be unlocked via regular means.</description>
-    <version>1.4</version>
+The items can still be unlocked via regular means.
+
+Alternative unlock methods (selectable using modconfigmenu):
+Regular streak/wins/runs -&gt; Random character streak/wins/runs
+Total runs for dedication -&gt; # total achievements unlocked
+
+All numbers can also be tweaked using modconfigmenu</description>
+    <version>1.5</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Tweaks"/>

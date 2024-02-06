@@ -299,6 +299,71 @@ function nmd:modConfigMenuInit(_)
         )
     end
 
+    ModConfigMenu.AddSpace("No More Dailies", "Config")
+
+    -- Display random runs/wins/streak
+    ModConfigMenu.AddSetting(
+        "No More Dailies",
+        "Config",
+        {
+            Type = ModConfigMenu.OptionType.TEXT,
+            Display = function()
+                return "Random runs: " .. tostring(nmd.persistentData.random_runs)
+            end
+        }
+    )
+    ModConfigMenu.AddSetting(
+        "No More Dailies",
+        "Config",
+        {
+            Type = ModConfigMenu.OptionType.TEXT,
+            Display = function()
+                return "Random wins: " .. tostring(nmd.persistentData.random_wins)
+            end
+        }
+    )
+    ModConfigMenu.AddSetting(
+        "No More Dailies",
+        "Config",
+        {
+            Type = ModConfigMenu.OptionType.TEXT,
+            Display = function()
+                return "Random streak: " .. tostring(nmd.persistentData.random_streak)
+            end
+        }
+    )
+
+    -- Reset random runs/wins/streak
+    ModConfigMenu.AddSetting(
+        "No More Dailies",
+        "Config",
+        {
+            Type = ModConfigMenu.OptionType.NUMBER,
+            CurrentSetting = function()
+                return 0
+            end,
+            OnChange = function(_)
+                nmd.persistentData.random_runs = 0
+                nmd.persistentData.random_wins = 0
+                nmd.persistentData.random_streak = 0
+                nmd:saveData()
+                ModConfigMenu.RemoveSubcategory("No More Dailies", "Config")
+                nmd:modConfigMenuInit()
+            end,
+            Display = function()
+                return "Reset random runs/wins/streak to 0"
+            end,
+            Info = {
+                "Press left/right to reset",
+                "Note: this will not remove achievements already gained"
+            },
+            Minimum = 0,
+            Maximum = 0,
+        }
+    )
+
+    ModConfigMenu.AddSpace("No More Dailies", "Config")
+
     -- Debug option
     ModConfigMenu.AddSetting(
         "No More Dailies",
