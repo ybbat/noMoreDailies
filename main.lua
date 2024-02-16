@@ -1,7 +1,29 @@
 local nmd = RegisterMod("No More Dailies", 1)
 
+nmd.init = Isaac.GetTime()
+
+function nmd:set_init()
+    nmd.init = Isaac.GetTime()
+end
+
+function nmd:repentogon_text()
+    if Isaac.GetTime() - nmd.init <= 5000 then
+        Isaac.RenderText("No More Dailies Error:", 200, 45, 1, 0, 0, 1)
+        Isaac.RenderText("REPENTOGON not installed", 200, 60, 1, 0, 0, 1)
+    else
+        nmd:RemoveCallback(ModCallbacks.MC_POST_GAME_STARTED, nmd.set_init)
+        nmd:RemoveCallback(ModCallbacks.MC_POST_RENDER, nmd.repentogon_text)
+    end
+end
+
+if not REPENTOGON then
+    nmd:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, nmd.set_init)
+    nmd:AddCallback(ModCallbacks.MC_POST_RENDER, nmd.repentogon_text)
+    error("REPENTOGON not installed")
+    return
+end
+
 local json = require("json")
-local os = require("os")
 
 nmd.dedication_options = {
     "# runs",
@@ -497,7 +519,6 @@ end
 nmd:AddCallback(ModCallbacks.MC_POST_GAME_END, nmd.gameEnd)
 
 nmd.last = 0
-nmd.init = os.clock()
 nmd.randomed = false
 nmd.diffonchange = 0.00
 nmd.lastn = { 0, 0, 0, 0, 0 }
@@ -514,8 +535,8 @@ end
 function nmd:randomDetectorInMenu()
     if MenuManager.GetActiveMenu() == MainMenuType.CHARACTER then
         local id = CharacterMenu:GetSelectedCharacterID()
-        local now = os.clock()
-        local diff = now - nmd.init
+        local now = Isaac.GetTime()
+        local diff = (now - nmd.init) / 1000
 
         -- Debug display
         if nmd.persistentData.debug then
@@ -528,7 +549,7 @@ function nmd:randomDetectorInMenu()
         end
 
         -- If hovering on selection for more than 2 seconds we definitely aren't randoming
-        if diff > 2 then
+        if diff > 2000 then
             nmd.randomed = false
         end
 
@@ -539,7 +560,7 @@ function nmd:randomDetectorInMenu()
 
             nmd.diffonchange = diff
             -- first time diff when randoming is always approx 0.05, cannot be easily replicated manually
-            if nmd.randomed == false and diff <= 0.06 then
+            if nmd.randomed == false and diff <= 60 then
                 nmd.randomed = true
             end
 
@@ -547,8 +568,8 @@ function nmd:randomDetectorInMenu()
                 nmd.randomed = false
             end
 
-            -- random always ends at somewhere in range [0.5, 0.58]
-            if diff > 0.6 then
+            -- random always ends at somewhere in range [0.5, 0.58] seconds
+            if diff > 600 then
                 nmd.randomed = false
             end
 
