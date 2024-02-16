@@ -1,6 +1,7 @@
 local nmd = RegisterMod("No More Dailies", 1)
 
 local json = require("json")
+local os = require("os")
 
 nmd.dedication_options = {
     "# runs",

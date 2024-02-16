@@ -18,7 +18,7 @@ Regular streak/wins/runs -&gt; Random character streak/wins/runs
 Total runs for dedication -&gt; # total achievements unlocked
 
 All numbers can also be tweaked using modconfigmenu</description>
-    <version>1.5</version>
+    <version>1.7</version>
     <visibility>Public</visibility>
     <tag id="Lua"/>
     <tag id="Tweaks"/>
