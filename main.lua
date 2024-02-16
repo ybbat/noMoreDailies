@@ -563,5 +563,3 @@ function nmd:randomDetectorInMenu()
 end
 
 nmd:AddCallback(ModCallbacks.MC_MAIN_MENU_RENDER, nmd.randomDetectorInMenu)
-
-Console.RegisterMacro("win", { "stage 8", "debug 10", "giveitem k5" })
